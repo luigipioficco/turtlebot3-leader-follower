@@ -1,0 +1,196 @@
+# Parameters for every node of the leader-follower system.
+#
+# Each value is annotated with the reason it is what it is. Some are physical
+# limits of the platform and were not chosen at all; the rest are design
+# decisions.
+
+target_detector_node:
+  ros__parameters:
+    image_topic: "/camera/image_raw"
+    camera_info_topic: "/camera/camera_info"
+
+    # Side of the marker's BLACK SQUARE, not of the white panel carrying it.
+    # The quiet zone is not part of what solvePnP solves for, and passing the
+    # panel side instead makes every distance come out too large in silence.
+    marker_size: 0.15
+
+    # 0, 1 and 2 are the fixed panels on the walls; the target carries 3.
+    # Using an id different from those already present also exercises the
+    # detector's filtering.
+    target_marker_id: 3
+
+    optical_frame: "camera_rgb_optical_frame"
+    odom_frame: "odom"
+    publish_debug_image: true
+
+    # Marker frame on /tf, for RViz only. No node performs lookups on it.
+    publish_marker_tf: true
+
+
+follower_controller_node:
+  ros__parameters:
+    # Twice the camera rate: the controller must keep producing commands
+    # between frames, and above all when frames stop arriving.
+    control_rate: 20.0
+
+    # --- pursuit ---
+    #
+    # The marker stays readable out to about 1.8 m, so 1.5 leaves 0.3 m of
+    # margin. That is deliberately narrow: a single turn is enough for the
+    # target to consume it, which is what separates a follower that keeps
+    # advancing from one that stops.
+    #
+    # At 1.2 m the margin would be 0.6 m, more than a turn can consume, so
+    # even a follower that stops re-acquires the target and the two strategies
+    # become indistinguishable. The operating point is chosen so that the
+    # phenomenon under study is observable.
+    desired_distance: 1.50
+    distance_tolerance: 0.10    # [m] dead band, suppresses fore-aft hunting
+    bearing_tolerance: 0.05     # [rad] about 3 degrees
+
+    # FEED-FORWARD on the target velocity.
+    #
+    # Without it the loop has a steady-state lag: to keep station behind a
+    # target moving at v_t the follower must itself move at v_t, and with a
+    # purely proportional law that command can only come from a non-zero
+    # error. An integrator would remove it too, but would need anti-windup;
+    # the target velocity is already estimated here for the prediction, so
+    # feeding it forward uses a measured quantity instead of accumulating one.
+    use_feedforward: true
+
+    # How far beyond an obstacle the estimate must lie before the prediction
+    # is considered unreachable. Both conditions are required: an obstacle in
+    # that direction alone is the normal case when the target rounds one.
+    blocked_margin: 0.30
+
+    k_linear: 0.6               # distance loop gain
+    k_angular: 1.5              # bearing loop gain; higher oscillates
+    max_linear: 0.22            # physical limits of the TurtleBot3 Burger
+    max_angular: 1.8
+
+    # --- loss and search ---
+    #
+    # Four missed camera frames at 10 Hz: long enough not to trigger on a
+    # single failed detection, short enough to react quickly.
+    lost_timeout: 0.40
+    search_angular: 0.80
+
+    # A TF lookup can fail for an isolated cycle when the simulation is slow.
+    # Giving up at once would cut the prediction short; ten cycles is half a
+    # second of tolerance.
+    max_tf_misses: 10
+
+    # Reversing is allowed only while the distance is actually decreasing. If
+    # the target is already moving away the gap closes by itself, and backing
+    # off would open it at the sum of both speeds.
+    closing_threshold: -0.02
+
+    # After regaining contact the setpoint is not demanded at once: it starts
+    # from the current distance and ramps back to nominal, because the
+    # priority right then is not to lose the target again.
+    reacquire_ramp: 5.0
+    desired_distance_floor: 0.60
+
+    # --- prediction ---
+    #
+    # THE INDEPENDENT VARIABLE OF THE EXPERIMENT. With false, a loss leads
+    # straight to the search: that is the reactive baseline.
+    use_prediction: true
+
+    # A 90-degree turn takes about a second and a half, so the horizon must
+    # cover it; and at 0.21 m/s every further second is ground covered on a
+    # straight-line assumption about a turning target.
+    prediction_horizon: 3.0
+
+    # Velocity is the slope of a least-squares fit over this many samples. A
+    # difference between two consecutive positions would amplify the
+    # measurement noise instead of averaging it out.
+    velocity_window: 8
+
+    # Below this many samples nothing is extrapolated: a short window gives a
+    # speed noticeably higher than the truth, and that is exactly the state
+    # right after regaining contact.
+    min_velocity_samples: 5
+
+    # Physical constraint: the target is a TurtleBot3.
+    max_target_speed: 0.25
+
+    # On a stationary target the residual noise produces a small apparent
+    # velocity; without this threshold the follower would extrapolate it.
+    min_speed_for_prediction: 0.03
+
+    # --- safety ---
+    #
+    # Three regimes: beyond safety_distance the visual command passes through
+    # unchanged; between the two the forward speed is scaled linearly and a
+    # turn towards the freer side is added; below critical_distance the
+    # advance is cancelled and only that turn remains.
+    safety_distance: 0.35
+    critical_distance: 0.22
+    front_sector_deg: 60.0
+
+    # The LDS-01 floor. Needed explicitly because the gz bridge delivers the
+    # message's own range_min as zero, so filtering on it filters nothing.
+    min_valid_range: 0.12
+
+    # Past this age a scan is considered unreliable and an obstacle is
+    # assumed, which is the cautious answer.
+    scan_max_age: 1.0
+
+    # Reverse is limited to half speed: opening a gap is never urgent.
+    reverse_factor: 0.5
+
+    base_frame: "base_footprint"
+    odom_frame: "odom"
+    cmd_vel_topic: "/cmd_vel"
+
+
+target_driver_node:
+  ros__parameters:
+    trajectory: "trajectory_1"
+
+    # 0.21 against the follower's 0.22: a ratio of 1.05, so the recovery
+    # margin is only 0.01 m/s and a follower that stops never closes the gap
+    # again. This is the condition Challenge 2 of the proposal describes.
+    max_linear: 0.21
+    max_angular: 1.0            # slower than the follower, so turns are followable
+    k_angular: 1.6
+
+    # Arrival radius. The driver tapers its speed within twice this distance,
+    # which is where the constraint on short segments comes from.
+    waypoint_tolerance: 0.18
+
+    loop: true
+    start_delay: 5.0
+
+    # True pose from the simulator, not odometry: odometry drifts at every
+    # turn, and after a few laps the target drove into walls believing it had
+    # free space. It never enters the follower's control loop.
+    pose_topic: "/target/ground_truth"
+    cmd_vel_topic: "/target/cmd_vel"
+
+    # The target has no sensors, so if anything blocks it it would push
+    # against the obstacle indefinitely. These detect the lack of progress.
+    stuck_time: 6.0
+    stuck_distance: 0.05
+
+    # 135 degrees. Beyond that a waypoint is effectively behind, and going for
+    # it would turn the target into the follower pursuing it.
+    behind_threshold: 2.36
+
+
+metrics_logger_node:
+  ros__parameters:
+    output_dir: "/root/ros_workspace/results"
+    run_label: "run"
+
+    # MUST match the controller's value: the logger measures the error against
+    # the same reference the control acts on.
+    desired_distance: 1.50
+
+    collision_threshold: 0.16
+    sample_rate: 20.0
+
+    # Same reason: this must match the controller, or the logger would count
+    # losses at different instants from the ones the controller reacts to.
+    lost_timeout: 0.40
