@@ -1,9 +1,0 @@
-ros_ws/build/
-ros_ws/install/
-ros_ws/log/
-results/
-ros_ws/results/
-__pycache__/
-*.pyc
-.pytest_cache/
-*Zone.Identifier*
