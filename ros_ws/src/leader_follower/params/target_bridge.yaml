@@ -1,0 +1,49 @@
+# gz <-> ROS bridge for the TARGET robot.
+# Only the velocity command and the pose the driver needs to follow its
+# waypoints.
+# The target's TF is deliberately NOT carried onto /tf: its DiffDrive plugin
+# produces frames with the same names as the follower's, and publishing both
+# would make every lookup resolve non-deterministically.
+
+- ros_topic_name: "/target/cmd_vel"
+  gz_topic_name: "/target/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/TwistStamped"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# True pose of the target in the world frame. Not used by any node any more
+# -- the target's earlier driver read it directly to follow its waypoints
+# without accumulating odometry drift; the current one drives through Nav2,
+# which localises the target itself (AMCL, not this topic). Kept bridged
+# because it is still useful for debugging: comparing it against AMCL's own
+# estimate (target/amcl_pose) is the quickest way to tell a localisation
+# problem from an actual navigation one.
+- ros_topic_name: "/target/ground_truth"
+  gz_topic_name: "/model/target/pose"
+  ros_type_name: "geometry_msgs/msg/PoseStamped"
+  gz_type_name: "gz.msgs.Pose"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/target/odom"
+  gz_topic_name: "/target/odom"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# The two entries below are used by Nav2, which drives the target.
+#
+# LiDAR of the target, for AMCL and the costmaps.
+- ros_topic_name: "/target/scan"
+  gz_topic_name: "/target/scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+# The target's own TF tree (target/odom -> target/base_footprint), kept on
+# /target/tf and never on /tf, for the reason given at the top of this file.
+# Nav2 runs in the /target namespace and reads its TF from here.
+- ros_topic_name: "/target/tf"
+  gz_topic_name: "/target/tf"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS

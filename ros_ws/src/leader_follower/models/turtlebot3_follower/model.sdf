@@ -1,0 +1,511 @@
+<?xml version="1.0"?>
+<!-- Robot FOLLOWER.
+
+     Derived from ROBOTIS turtlebot3_burger_cam (turtlebot3_simulations,
+         jazzy branch). Meshes, inertias, kinematics, LiDAR, IMU and DiffDrive
+         are the originals and have not been touched.
+
+         THE ONLY MODIFICATION is the camera sensor. The original is a
+         wideanglecamera with a 182-degree field of view at 320x240, which does
+         not work for this project:
+
+           * angular resolution. A marker of side 0.15 m seen from one metre
+             occupies about fifteen pixels, and a 4x4 ArUco code needs roughly
+             twice that to be decoded reliably. With the fisheye the target is
+             simply not detected.
+
+           * projection model. solvePnP assumes a pinhole camera; on a fisheye
+             lens the estimated pose comes out distorted towards the edges.
+
+           * field of view. With 182 degrees the target essentially never
+             leaves the frame, and without loss of visibility this project has
+             nothing to study.
+
+         The replacement is a pinhole camera at 480x360 with a 74-degree field
+         of view. The frame rate drops from 30 to 10 Hz: camera rendering is
+         the heaviest part of the simulation and 10 Hz is ample for a target
+         moving at 0.21 m/s.
+    -->
+<sdf version="1.8">
+  <model name="turtlebot3_follower">
+    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+
+    <link name="base_footprint"/>
+
+    <link name="base_link">
+
+      <inertial>
+        <pose>-0.032 0 0.070 0 0 0</pose>
+        <inertia>
+          <ixx>7.2397393e-01</ixx>
+          <ixy>4.686399e-10</ixy>
+          <ixz>-1.09525703e-08</ixz>
+          <iyy>7.2397393e-01</iyy>
+          <iyz>2.8582649e-09</iyz>
+          <izz>6.53050163e-01</izz>
+        </inertia>
+        <mass>8.2573504e-01</mass>
+      </inertial>
+
+      <collision name="base_collision">
+        <pose>-0.032 0 0.070 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.140 0.140 0.140</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="base_visual">
+        <pose>-0.032 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_common/meshes/bases/burger_base.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1.0</ambient>
+          <diffuse>0.3 0.3 0.3 1.0</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="imu_link">
+      <sensor name="tb3_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>200</update_rate>
+        <topic>imu</topic>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </link>
+
+    <link name="base_scan">
+      <inertial>
+        <pose>-0.020 0 0.161 0 0 0</pose>
+        <inertia>
+          <ixx>0.001</ixx>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
+          <iyy>0.001</iyy>
+          <iyz>0.000</iyz>
+          <izz>0.001</izz>
+        </inertia>
+        <mass>0.114</mass>
+      </inertial>
+
+      <collision name="lidar_sensor_collision">
+        <pose>-0.020 0 0.161 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.0508</radius>
+            <length>0.055</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <visual name="lidar_sensor_visual">
+        <pose>-0.032 0 0.171 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_common/meshes/sensors/lds.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1.0</ambient>
+          <diffuse>0.2 0.2 0.2 1.0</diffuse>
+        </material>
+      </visual>
+
+      <sensor name="hls_lfcd_lds" type="gpu_lidar">
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+        <pose>-0.032 0 0.171 0 0 0</pose>
+        <update_rate>5</update_rate>
+        <topic>scan</topic>
+        <gz_frame_id>base_scan</gz_frame_id>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1.000000</resolution>
+              <min_angle>0.000000</min_angle>
+              <max_angle>6.280000</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.120000</min>
+            <max>3.5</max>
+            <resolution>0.015000</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </link>
+
+    <link name="wheel_left_link">
+
+      <inertial>
+        <pose>0 0.08 0.023 -1.57 0 0</pose>
+        <inertia>
+          <ixx>1.8158194e-03</ixx>
+          <ixy>-9.3392e-12</ixy>
+          <ixz>1.04909e-11</ixz>
+          <iyy>3.2922126e-03</iyy>
+          <iyz>5.75694e-11</iyz>
+          <izz>1.8158194e-03</izz>
+        </inertia>
+        <mass>2.8498940e-02</mass>
+      </inertial>
+
+      <collision name="wheel_left_collision">
+        <pose>0 0.08 0.023 -1.57 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.033</radius>
+            <length>0.018</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <!-- This friction pamareter don't contain reliable data!! -->
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+              <fdir1>0 0 0</fdir1>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+5</kp>
+              <kd>1</kd>
+              <max_vel>0.01</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+
+      <visual name="wheel_left_visual">
+        <pose>0 0.08 0.023 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_common/meshes/wheels/left_tire.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1.0</ambient>
+          <diffuse>0.2 0.2 0.2 1.0</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="wheel_right_link">
+
+      <inertial>
+        <pose>0.0 -0.08 0.023 -1.57 0 0</pose>
+        <inertia>
+          <ixx>1.8158194e-03</ixx>
+          <ixy>-9.3392e-12</ixy>
+          <ixz>1.04909e-11</ixz>
+          <iyy>3.2922126e-03</iyy>
+          <iyz>5.75694e-11</iyz>
+          <izz>1.8158194e-03</izz>
+        </inertia>
+        <mass>2.8498940e-02</mass>
+      </inertial>
+
+      <collision name="wheel_right_collision">
+        <pose>0.0 -0.08 0.023 -1.57 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.033</radius>
+            <length>0.018</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <!-- This friction pamareter don't contain reliable data!! -->
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+              <fdir1>0 0 0</fdir1>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+5</kp>
+              <kd>1</kd>
+              <max_vel>0.01</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+
+      <visual name="wheel_right_visual">
+        <pose>0.0 -0.08 0.023 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://turtlebot3_common/meshes/wheels/right_tire.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1.0</ambient>
+          <diffuse>0.2 0.2 0.2 1.0</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name='caster_back_link'>
+      <pose>-0.081 0 -0.004 -1.57 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
+          <iyy>0.001</iyy>
+          <iyz>0.000</iyz>
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <geometry>
+          <sphere>
+            <radius>0.005000</radius>
+          </sphere>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+5</kp>
+              <kd>1</kd>
+              <max_vel>0.01</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+    </link>
+
+    <link name="camera_link">
+
+      <inertial>
+        <pose>0.076 0.0 0.093 0 0 0</pose>
+        <inertia>
+          <ixx>0.001</ixx>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
+          <iyy>0.001</iyy>
+          <iyz>0.000</iyz>
+          <izz>0.001</izz>
+        </inertia>
+        <mass>0.035</mass>
+      </inertial>
+
+      <pose>0.076 0.0 0.093 0 0 0</pose>
+      <sensor name="camera" type="camera">
+        <always_on>true</always_on>
+        <!-- no preview in the client: one more render on every frame -->
+        <visualize>false</visualize>
+        <!-- 10 Hz is enough: between two frames the target moves a couple of
+             centimetres. The controller runs at 20 Hz regardless and
+             extrapolates between detections, so dropping from 30 to 10 Hz is
+             the most effective cut in simulation cost and nearly free. -->
+        <update_rate>10</update_rate>
+        <topic>camera/image_raw</topic>
+        <gz_frame_id>camera_rgb_frame</gz_frame_id>
+        <camera name="follower_cam">
+          <camera_info_topic>camera/camera_info</camera_info_topic>
+          <horizontal_fov>1.30</horizontal_fov>
+          <!-- 480x360. The 0.15 m marker spans 47 px at one metre and stays
+                   above the decoding threshold out to about 1.8 m, which is
+                   the practical detection range of the system. -->
+          <image>
+            <width>480</width>
+            <height>360</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>20.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </camera>
+      </sensor>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+      <parent>base_footprint</parent>
+      <child>base_link</child>
+      <pose>0.0 0.0 0.010 0 0 0</pose>
+    </joint>
+
+    <joint name="wheel_left_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_left_link</child>
+      <pose>0.0 0.08 0.023 -1.57 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>20</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name="wheel_right_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_right_link</child>
+      <pose>0.0 -0.08 0.023 -1.57 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>20</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name='caster_back_joint' type='ball'>
+      <parent>base_link</parent>
+      <child>caster_back_link</child>
+    </joint>
+
+    <joint name="imu_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>imu_link</child>
+      <pose>-0.032 0 0.068 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+    <joint name="lidar_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>base_scan</child>
+      <pose>-0.032 0 0.171 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+    <joint name="camera_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>camera_link</child>
+      <pose>0.040 -0.000 0.110 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+
+      <!-- wheels -->
+      <left_joint>wheel_left_joint</left_joint>
+      <right_joint>wheel_right_joint</right_joint>
+
+      <!-- kinematics -->
+      <wheel_separation>0.160</wheel_separation>
+      <wheel_radius>0.033</wheel_radius>
+
+      <!-- limits -->
+      <max_linear_acceleration>1.0</max_linear_acceleration>
+
+      <topic>cmd_vel</topic>
+
+      <odom_topic>odom</odom_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+      <odom_publisher_frequency>30</odom_publisher_frequency>
+
+      <tf_topic>/tf</tf_topic>
+
+    </plugin>
+
+    <!-- TRUE POSE, FOR EVALUATION ONLY
+
+             Used by metrics_logger_node. It does NOT enter any control loop
+             and is deliberately not published on /tf: the follower keeps
+             perceiving the target through camera and LiDAR alone. -->
+    <plugin filename="gz-sim-pose-publisher-system"
+            name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>false</publish_link_pose>
+      <publish_collision_pose>false</publish_collision_pose>
+      <publish_visual_pose>false</publish_visual_pose>
+      <publish_sensor_pose>false</publish_sensor_pose>
+      <publish_model_pose>true</publish_model_pose>
+      <use_pose_vector_msg>false</use_pose_vector_msg>
+      <update_frequency>20</update_frequency>
+    </plugin>
+
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+      <joint_name>wheel_left_joint</joint_name>
+      <joint_name>wheel_right_joint</joint_name>
+    </plugin>
+
+  </model>
+</sdf>
