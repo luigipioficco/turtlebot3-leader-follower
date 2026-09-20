@@ -80,7 +80,7 @@ to tell apart by eye.
 
 ## Target navigation
 
-The target — the robot carrying the marker, not the follower — is driven by the official
+The target, the robot carrying the marker, is driven by the official
 [Nav2](https://docs.nav2.org/) stack: `map_server`, AMCL, the planner and controller servers,
 the behaviour tree, all unmodified and running in the `/target` namespace. Nothing of Nav2 is
 rewritten; `launch/target_nav2.launch.py` loads the `nav2_params.yaml` shipped with
