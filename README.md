@@ -233,10 +233,9 @@ from [`evannsmc/ROS2Logger`](https://github.com/evannsmc/ROS2Logger)'s
 `shutdown_helpers.py` (MIT licence).
 
 The pursuit control law in `follower_controller_node.py` follows the structure of the
-standard "Cartesian regulation" approach for a unicycle — course material, not a code
-repository, cited for the same reason a textbook derivation would be.
+standard "Cartesian regulation" approach for a unicycle.
 
 The motion prediction and the recovery state machine
 (`estimate_velocity`/`predict_position` in `geometry.py`, the `FOLLOW`/`PREDICT`/`SEARCH`
 logic in `follower_controller_node.py`) are original to this project, with no external source
-claimed: the course names this part explicitly as the one to design independently.
+claimed.
