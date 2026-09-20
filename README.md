@@ -8,7 +8,7 @@ heading and continuing the pursuit blind for a few seconds.
 No SLAM, no Nav2, no map, for the **follower**: its navigation is entirely reactive and
 perception-driven. The **target** it chases is a scripted stimulus, not the system under
 test, and is driven by the official Nav2 stack (AMCL, planner, controller) rather than a
-bespoke driver — see [Target navigation](#target-navigation) below.
+bespoke driver (see [Target navigation](#target-navigation) below).
 
 ---
 
