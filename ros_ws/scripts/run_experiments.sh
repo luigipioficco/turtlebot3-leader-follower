@@ -35,7 +35,6 @@ N=0
 START=$(date +%s)
 
 echo "campaign: $REPS repetitions x 2 strategies | route '${TRAJ:-default}', ${DURATION}s each"
-echo "estimate: ~$(( TOT * DURATION * 10 / 7 / 60 )) minutes | results in $OUT"
 echo
 
 # INTERLEAVED ORDER, not all the reactive runs and then all the predictive.
