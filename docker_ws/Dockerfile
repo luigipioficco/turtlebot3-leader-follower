@@ -17,8 +17,8 @@ RUN apt update -y && apt install -y ros-jazzy-tf2-geometry-msgs
 # OpenCV (including the ArUco module) and numpy
 RUN apt update -y && apt install -y python3-opencv python3-numpy
 
-# pandas and matplotlib, used by scripts/analyze_results.py
-RUN apt update -y && apt install -y python3-pandas python3-matplotlib
+# pandas, used by scripts/analyze_results.py
+RUN apt update -y && apt install -y python3-pandas
 
 # handy for inspecting the camera stream while debugging
 RUN apt update -y && apt install -y ros-jazzy-rqt-image-view
