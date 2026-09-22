@@ -1,4 +1,4 @@
-# The two routes the target follows.
+# The route the target follows.
 #
 # ROS-free module: this is data, not logic, so it can be inspected and checked
 # without starting rclpy.
@@ -20,13 +20,6 @@ TRAJECTORIES = {
         (0.6, -3.0), (0.6, 0.0), (2.0, 1.0), (4.2, 0.0), (4.2, 2.0),
         (0.0, 2.0), (0.0, 3.0), (-0.6, 3.0), (-0.6, 0.0), (-2.0, -1.0),
         (-4.2, 0.0), (-4.2, -2.0), (0.0, -2.0), (0.0, -3.0),
-    ],
-
-    # Four turns instead of fourteen, in the free quadrant beside the chicane.
-    # The marker stays almost always frontal, so losses are rare: this is the
-    # route used to check that the following is stable.
-    'trajectory_2': [
-        (4.1, 3.4), (-1.0, 3.4), (-1.0, -0.2), (4.1, -0.2),
     ],
 }
 
