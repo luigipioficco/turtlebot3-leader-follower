@@ -103,7 +103,7 @@ its own, and no access to the target's TF tree or Nav2 stack (kept on `/target/t
 | argument | values | default | meaning |
 |---|---|---|---|
 | `strategy` | `predictive`, `reactive` | `predictive` | with or without motion prediction |
-| `trajectory` | `trajectory_1`, `trajectory_2` | `trajectory_1` | route driven by the target |
+| `trajectory` | `trajectory_1` | `trajectory_1` | route driven by the target |
 | `duration` | seconds | `0` | auto-shutdown, `0` = unlimited |
 | `gui` | `true`, `false` | `true` | Gazebo window; `false` for batch runs |
 | `rviz` | `true`, `false` | `true` | RViz2 |
@@ -179,7 +179,7 @@ ros_ws/
 │       └── test/              geometric validation of the trajectories
 └── scripts/
     ├── run_experiments.sh     runs the experiment
-    ├── analyze_results.py     comparison table and figures
+    ├── analyze_results.py     comparison table 
     ├── generate_world.py      regenerates the arena from worlds.py
     └── generate_map.py        regenerates the target's map from the same geometry
 run.sh                start the container
