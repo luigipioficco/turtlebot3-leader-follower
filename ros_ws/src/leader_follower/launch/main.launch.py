@@ -5,7 +5,7 @@ It includes the simulation launch file and adds the custom nodes on top.
 Arguments:
 
     strategy:=predictive | reactive
-    trajectory:=trajectory_1 | trajectory_2   (empty = trajectory_1)
+    trajectory:=trajectory_1   (only route defined; kept explicit for clarity)
     gui:=true | false       Gazebo window
     rviz:=true | false
     duration:=<seconds>     stops the run on its own (0 = no limit)
