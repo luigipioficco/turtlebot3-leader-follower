@@ -38,7 +38,6 @@ setup(
     maintainer_email='luigipioficco@gmail.com',
     description='Autonomous Leader-Follower Navigation with Visual Target Recovery',
     license='Apache-2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'target_detector_node = leader_follower.target_detector_node:main',
