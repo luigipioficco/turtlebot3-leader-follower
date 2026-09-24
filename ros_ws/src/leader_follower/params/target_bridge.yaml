@@ -11,19 +11,6 @@
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
 
-# True pose of the target in the world frame. Not used by any node any more
-# -- the target's earlier driver read it directly to follow its waypoints
-# without accumulating odometry drift; the current one drives through Nav2,
-# which localises the target itself (AMCL, not this topic). Kept bridged
-# because it is still useful for debugging: comparing it against AMCL's own
-# estimate (target/amcl_pose) is the quickest way to tell a localisation
-# problem from an actual navigation one.
-- ros_topic_name: "/target/ground_truth"
-  gz_topic_name: "/model/target/pose"
-  ros_type_name: "geometry_msgs/msg/PoseStamped"
-  gz_type_name: "gz.msgs.Pose"
-  direction: GZ_TO_ROS
-
 - ros_topic_name: "/target/odom"
   gz_topic_name: "/target/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
