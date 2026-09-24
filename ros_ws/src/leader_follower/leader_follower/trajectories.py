@@ -5,15 +5,7 @@
 
 TRAJECTORIES = {
 
-    # Fourteen turns in about 30 m, weaving through the chicane. Four of them
-    # pass more than 1.5 m from any obstacle -- comfortably outside Nav2's
-    # 0.35 m costmap inflation (config/nav2_overrides.yaml), so the target
-    # goes through them at its normal, undamped speed. Two of those four,
-    # (0.0, 2.0) and (0.0, -2.0), were already this open on the original
-    # twelve-waypoint route; the other two, (2.0, 1.0) and (-2.0, -1.0), were
-    # added specifically to double that count. The remaining ten turns sit
-    # close enough to a wall or a chicane blade that Nav2 slows the target
-    # down for them regardless of what the follower does. The turns are what
+    # Fourteen turns, weaving through the chicane. The turns are what
     # make the marker go edge-on, so this is the route on which the
     # difference between the two strategies is actually observable.
     'trajectory_1': [
