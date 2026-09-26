@@ -29,8 +29,8 @@ def occupied(x, y):
     half_w, half_h = worlds.RECT
     if abs(x) >= half_w - WALL_T / 2 or abs(y) >= half_h - WALL_T / 2:
         return True
-    # Chicane blades, with the same distance function used to validate the
-    # trajectories.
+    # Chicane blades, with the same distance function worlds.py uses
+    # internally.
     if any(worlds._dist_wall(wx, y0, y1, x, y) <= 0.0
            for wx, y0, y1 in worlds.WALLS):
         return True
