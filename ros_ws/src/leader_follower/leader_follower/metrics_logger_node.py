@@ -78,10 +78,6 @@ class MetricsLogger(Node):
         self.declare_parameter('min_valid_range', 0.12)
         self.declare_parameter('sample_rate', 20.0)
         self.declare_parameter('lost_timeout', 0.40)
-        # [x, y, yaw] in the world frame; must match the values in the launch
-        # file, which are the ones actually used to spawn the robots.
-        self.declare_parameter('follower_spawn', [1.7, 2.0, 3.1416])
-        self.declare_parameter('target_spawn', [0.5, 2.0, 3.1416])
 
         self.out_dir = self.get_parameter('output_dir').value
         self.label = self.get_parameter('run_label').value
