@@ -176,7 +176,7 @@ Inside `leader_follower`, the four nodes are:
 | `target_driver_nav2_node` | sends the target's waypoints to Nav2, adapted from `nav2_simple_commander`'s patrol demo |
 | `metrics_logger_node` | records every run to CSV; its shutdown handling is adapted from `evannsmc/ROS2Logger` |
 
-Plus `geometry.py`, `trajectories.py`, `worlds.py` and `aruco_compat.py`, which
+Plus `geometry.py`, `trajectories.py` and `worlds.py`, which
 hold pure functions and data with no ROS dependency, and `config/follower_params.yaml`,
 which collects every tunable parameter together with the reason for its value.
 
