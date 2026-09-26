@@ -16,10 +16,10 @@
 #     DICT_5X5_250) to match the markers already printed into this project's
 #     arena (see worlds.py); changing the dictionary would mean re-texturing
 #     every panel for no benefit.
-#   - Detection goes through this project's aruco_compat module instead of
-#     calling the OpenCV ArUco API directly: it transparently supports both
-#     the classic (<=4.6) and current cv2.aruco.ArucoDetector APIs, where the
-#     original assumes the classic one is always available.
+#   - Detection calls the OpenCV ArUco API directly, pinned to the classic
+#     (<=4.6) free-function form: Ubuntu 24.04 / ROS Jazzy ships OpenCV
+#     4.6.0 via apt, where cv2.aruco.ArucoDetector does not exist yet, so
+#     there is exactly one API to call, not two to support.
 #   - An identifier filter was added: four markers of the same dictionary
 #     exist in this arena (three fixed panels plus the target), and the
 #     original — built for a single-marker parking scenario — has no notion
@@ -48,8 +48,6 @@ from cv_bridge import CvBridge
 import tf2_ros
 import tf2_geometry_msgs  # noqa: F401  registers the PoseStamped transform
 from geometry_msgs.msg import TransformStamped
-
-from leader_follower import aruco_compat
 
 
 class TargetDetector(Node):
@@ -81,8 +79,12 @@ class TargetDetector(Node):
 
         # DICT_4X4_50 kept explicitly (see module header): the upstream
         # tracker defaults to DICT_5X5_250.
-        self.dictionary, self.detector, self.new_api = aruco_compat.make_detector(
-            'DICT_4X4_50')
+        self.dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+        self.aruco_params = cv2.aruco.DetectorParameters_create()
+        # Sub-pixel corner refinement: the pose depends directly on the
+        # corner positions, so refining them measurably reduces the noise on
+        # the estimated distance and bearing.
+        self.aruco_params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.bridge = CvBridge()
         self.K = None
         self.D = None
@@ -137,8 +139,8 @@ class TargetDetector(Node):
             return
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        corners, ids = aruco_compat.detect(gray, self.dictionary,
-                                           self.detector, self.new_api)
+        corners, ids, _ = cv2.aruco.detectMarkers(
+            gray, self.dictionary, parameters=self.aruco_params)
         found = self.tracking_markers(corners, ids, msg)
 
         # The flag is published ALWAYS, even with no marker in sight: it is the
@@ -177,9 +179,9 @@ class TargetDetector(Node):
         #
         # The transformation happens HERE and not in the controller, so the
         # velocity estimate downstream is free of the follower's own motion.
-        _, tvecs = aruco_compat.estimate_pose([corner], self.marker_size,
-                                              self.K, self.D)
-        x, y, z = (float(v) for v in tvecs[0])
+        _, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(
+            [corner], self.marker_size, self.K, self.D)
+        x, y, z = (float(v) for v in tvecs[0][0])
 
         ps = PoseStamped()
         ps.header.frame_id = self.optical_frame
