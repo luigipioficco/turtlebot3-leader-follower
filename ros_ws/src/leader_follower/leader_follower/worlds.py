@@ -1,7 +1,4 @@
 # Definition of the test environment.
-#
-# ROS-free module: this is data, not logic, so test_waypoints.py can validate
-# every trajectory against the geometry of the arena without starting rclpy.
 
 import math
 
@@ -29,11 +26,6 @@ WORLD_FILE = 'leader_follower_simple.world'
 DEFAULT_TRAJECTORY = 'trajectory_1'
 
 
-def _dist_markers(x, y):
-    """The ArUco panels are obstacles like any other."""
-    return min(math.hypot(x - mx, y - my) - 0.14 for mx, my, _, _ in MARKERS)
-
-
 def _dist_wall(wx, y0, y1, x, y):
     """Distance from a vertical blade, half-thickness included."""
     dx = abs(x - wx) - 0.05
@@ -41,15 +33,3 @@ def _dist_wall(wx, y0, y1, x, y):
     if dx > 0.0 or dy > 0.0:
         return math.hypot(max(dx, 0.0), dy)
     return -min(abs(dx), abs(dy))       # inside the blade
-
-
-def clearance(x, y):
-    # Distance to the nearest obstacle boundary, negative when inside one.
-    #
-    # This is the single source of truth for the arena geometry: the world
-    # file is generated from it, and the same function is used to verify that
-    # no trajectory waypoint falls inside an obstacle. Describing the geometry
-    # in two places is how the world and the check come to disagree.
-    return min(_dist_markers(x, y),
-               min(_dist_wall(wx, y0, y1, x, y) for wx, y0, y1 in WALLS),
-               RECT[0] - abs(x), RECT[1] - abs(y))
