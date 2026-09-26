@@ -54,10 +54,6 @@ def launch_setup(context, *args, **kwargs):
     output_dir = LaunchConfiguration('output_dir')
     use_rviz = LaunchConfiguration('rviz')
 
-    # Spawn poses read from worlds.py, the same source the Gazebo launch uses,
-    # so the logger's arena geometry cannot drift away from the simulated one.
-    follower_spawn = list(worlds.FOLLOWER_SPAWN)
-    target_spawn = list(worlds.TARGET_SPAWN)
 
     use_prediction = PythonExpression(["'", strategy, "' == 'predictive'"])
 
@@ -102,8 +98,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[params_file, {'use_sim_time': True,
                                   'run_label': run_label,
                                   'output_dir': output_dir,
-                                  'follower_spawn': follower_spawn,
-                                  'target_spawn': target_spawn,
                                   'duration': duration_s}],
         # When the logger exits because the SIMULATED duration is reached,
         # the whole run shuts down. It decides, not a wall-clock timer.
